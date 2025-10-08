@@ -114,124 +114,172 @@ The modules integrate in this workflow sequence:
 
 ## Architecture
 
-### Component map
+### Component Architecture
 
-```text
-                            +----------------------+
-                            |   Streamlit Chat UI  |
-                            |      app.py          |
-                            | (friendly interface) |
-                            +----------+-----------+
-                                       |
-                                       | GraphInput payload
-                                       v
-        +-------------------------------+-------------------------------+
-        |         LangGraph 7-Agent Orchestration (core/graph.py)       |
-        |  PrepareAgent -> RouterAgent -> ParamValidationAgent          |
-        |      |              |                    |                    |
-        |      v              v                    v                    |
-        |  normalize     OpenAI semantic     collect missing           |
-        |  inputs        routing + keywords   parameters               |
-        |      |              |                    |                    |
-        |      |              |                    v                    |
-        |      |              |              ToolAgent -> ExplainerAgent|
-        |      |              |                 |             |         |
-        |      |              |                 v             v         |
-        |      |              |           execute tool   format steps  |
-        |      |              |            w/ retry      (LaTeX math)   |
-        |      |              |                 |             |         |
-        |  SearchAgent <- HistoryAgent <- FinalizerAgent              |
-        |      |              |              ^                         |
-        |      v              v              |                         |
-        |  enrich with    persist run    build response               |
-        | (core/search)  (core/history)      |                         |
-        +-------|--------------|--------------|-------------------------+
-                |              |              |
-                v              |              |
-        +---------------+      |              |
-        |    Glossary   |      |              |
-        | data/*.yaml   |      |              |
-        +-------+-------+      |              |
-                |              |              |
-                v              v              v
-        +-------+-------+------+-------+------+-------+
-        |  Search Index | History DB  | Tool Registry |
-        | (rapidfuzz)   | (SQLite)    | (JSON schemas)|
-        +---------------+-------------+---------------+
-                                      |
-                                      v
-        +-----------------------------+-----------------------------+
-        |          Engineering Tools (tools/*.py)                  |
-        |  pipe_pressure_drop | beam_deflection | pump_power_npsh |
-        |  hx_lmtd | bolt_preload_torque                           |
-        |  [Pint units, Pydantic validation, Step generation]     |
-        +-----------------------------------------------------------+
-
-        +----------------------------+         +---------------------+
-        | MCP Server & Adapter       |<------->| External Clients    |
-        | mcp_server/server.py       |  stdio  | (IDEs, AI agents)   |
-        | core/adapters.py           |         | scripts/ping_mcp.py |
-        +----------------------------+         +---------------------+
-                      |
-                      | shares same LangGraph workflow
-                      v
-             (WorkbenchMCPAdapter.call_tool)
+```mermaid
+graph TD
+    %% User Interfaces
+    UI["`**Streamlit Chat UI**
+    app.py
+    (friendly interface)`"]
+    MCP["`**MCP Server**
+    mcp_server/server.py
+    (external integration)`"]
+    CLIENT["`**External Clients**
+    IDEs, AI agents
+    scripts/ping_mcp.py`"]
+    
+    %% LangGraph Workflow
+    subgraph WORKFLOW ["`**LangGraph 7-Agent Orchestration**
+    core/graph.py`"]
+        PREPARE["`**PrepareAgent**
+        normalize inputs`"]
+        ROUTER["`**RouterAgent**
+        OpenAI semantic routing
+        + keyword fallback`"]
+        PARAM["`**ParamValidationAgent**
+        collect missing
+        parameters`"]
+        TOOL["`**ToolAgent**
+        execute tool
+        w/ retry`"]
+        EXPLAIN["`**ExplainerAgent**
+        format steps
+        (LaTeX math)`"]
+        SEARCH["`**SearchAgent**
+        enrich with
+        glossary`"]
+        HISTORY["`**HistoryAgent**
+        persist run`"]
+        FINAL["`**FinalizerAgent**
+        build response`"]
+        
+        PREPARE --> ROUTER
+        ROUTER --> PARAM
+        PARAM --> TOOL
+        TOOL --> EXPLAIN
+        EXPLAIN --> SEARCH
+        SEARCH --> HISTORY
+        HISTORY --> FINAL
+    end
+    
+    %% Data Layer
+    subgraph DATA ["`**Data & Storage Layer**`"]
+        GLOSSARY["`**Glossary**
+        data/*.yaml`"]
+        SEARCHDB["`**Search Index**
+        (rapidfuzz)`"]
+        HISTORYDB["`**History DB**
+        (SQLite)`"]
+        REGISTRY["`**Tool Registry**
+        (JSON schemas)`"]
+    end
+    
+    %% Engineering Tools
+    subgraph TOOLS ["`**Engineering Tools**
+    tools/*.py`"]
+        PIPE["`**pipe_pressure_drop**
+        Darcy-Weisbach`"]
+        BEAM["`**beam_deflection**
+        Simply supported`"]
+        PUMP["`**pump_power_npsh**
+        Centrifugal pumps`"]
+        HX["`**hx_lmtd**
+        Heat exchangers`"]
+        BOLT["`**bolt_preload_torque**
+        Threaded fasteners`"]
+    end
+    
+    %% Core Modules
+    subgraph CORE ["`**Core Modules**`"]
+        STATE["`**core/state.py**
+        Data structures`"]
+        UNITS["`**core/units.py**
+        Pint registry`"]
+        ROUTING["`**core/routing.py**
+        Smart selection`"]
+        ADAPT["`**core/adapters.py**
+        MCP bridge`"]
+    end
+    
+    %% Connections
+    UI -->|GraphInput payload| WORKFLOW
+    MCP -->|shares same workflow| WORKFLOW
+    CLIENT <-->|stdio| MCP
+    
+    SEARCH --> GLOSSARY
+    SEARCH --> SEARCHDB
+    HISTORY --> HISTORYDB
+    ROUTER --> REGISTRY
+    
+    TOOL --> PIPE
+    TOOL --> BEAM
+    TOOL --> PUMP
+    TOOL --> HX
+    TOOL --> BOLT
+    
+    TOOLS --> STATE
+    TOOLS --> UNITS
+    WORKFLOW --> ROUTING
+    MCP --> ADAPT
+    
+    %% Styling
+    classDef interface fill:#e1f5fe
+    classDef workflow fill:#f3e5f5
+    classDef data fill:#e8f5e8
+    classDef tools fill:#fff3e0
+    classDef core fill:#fce4ec
+    
+    class UI,MCP,CLIENT interface
+    class WORKFLOW,PREPARE,ROUTER,PARAM,TOOL,EXPLAIN,SEARCH,HISTORY,FINAL workflow
+    class DATA,GLOSSARY,SEARCHDB,HISTORYDB,REGISTRY data
+    class TOOLS,PIPE,BEAM,PUMP,HX,BOLT tools
+    class CORE,STATE,UNITS,ROUTING,ADAPT core
 ```
 
-Both the Streamlit UI and the MCP server resolve to the same 7-agent LangGraph workflow, ensuring consistent routing, tool execution, and history/search behavior regardless of entry point. The workflow now includes intelligent OpenAI semantic routing with keyword fallback and parameter validation for incomplete inputs.
+The architecture ensures consistent behavior across all entry points, with intelligent OpenAI semantic routing, comprehensive unit support, and full calculation traceability through the 7-agent LangGraph workflow.
 
-### Sequence: user-triggered calculation
+### Workflow Sequence
 
-```text
-User/Client    Streamlit UI    LangGraph Workflow                     Tools & Storage
-    |              |                 |                                      |
-    | Submit form  |                 |                                      |
-    |------------->|                 |                                      |
-    |              | Build payload   |                                      |
-    |              |---------------->| PrepareAgent: normalize inputs       |
-    |              |                 | RouterAgent: OpenAI semantic routing |
-    |              |                 |   + keyword fallback                 |
-    |              |                 | ParamValidationAgent: check required |
-    |              |                 |   parameters, collect missing ones   |
-    |              |                 | ToolAgent: execute w/ retry policy   |
-    |              |                 |-------------------------------->     |
-    |              |                 |                        Tool.run()    |
-    |              |                 |<--------------------------------     |
-    |              |                 |                 results/steps/units  |
-    |              |                 | ExplainerAgent: format to Markdown   |
-    |              |                 |   with LaTeX equations               |
-    |              |                 | SearchAgent: enrich with glossary    |
-    |              |                 |-------------------------------->     |
-    |              |                 |<--------------------------------     |
-    |              |                 |              search results          |
-    |              |                 | HistoryAgent: persist run            |
-    |              |                 |-------------------------------->     |
-    |              |                 |<--------------------------------     |
-    |              |                 |                   history_id         |
-    |              |                 | FinalizerAgent: build response       |
-    |              | Response dict   |                                      |
-    | <------------|<----------------|                                      |
-    | Render tabs  |                 |                                      |
+```mermaid
+sequenceDiagram
+    participant U as User/Client
+    participant UI as Streamlit UI
+    participant W as LangGraph Workflow
+    participant T as Tools & Storage
+    participant MCP as MCP Server
+    participant C as External Client
 
+    Note over U,T: Streamlit Interface Flow
+    U->>UI: Submit calculation request
+    UI->>W: Build GraphInput payload
+    
+    Note over W: 7-Agent Orchestration
+    W->>W: PrepareAgent: normalize inputs
+    W->>W: RouterAgent: OpenAI semantic routing<br/>+ keyword fallback
+    W->>W: ParamValidationAgent: check required<br/>parameters, collect missing
+    W->>W: ToolAgent: execute with retry policy
+    W->>T: Tool.run() with parameters
+    T-->>W: results/steps/units/warnings
+    W->>W: ExplainerAgent: format to Markdown<br/>with LaTeX equations
+    W->>T: SearchAgent: query glossary/history
+    T-->>W: relevant search results
+    W->>T: HistoryAgent: persist calculation
+    T-->>W: history_id confirmation
+    W->>W: FinalizerAgent: build response
+    
+    W-->>UI: Complete response with results
+    UI-->>U: Render results in tabs
 
-MCP Client    MCP Server      LangGraph Workflow                     Tools & Storage
-    |              |                 |                                      |
-    | call_tool    |                 |                                      |
-    |------------->|                 |                                      |
-    |              | Build payload   |                                      |
-    |              |---------------->| (same 7-agent workflow sequence     |
-    |              |                 |  as above: Prepare->Router->Param->  |
-    |              |                 |  Tool->Explainer->Search->History->  |
-    |              |                 |  Finalizer)                          |
-    |              |                 |                                      |
-    |              | Response        |                                      |
-    | CallToolResult|<----------------|                                      |
-    |<-------------|                 |                                      |
-    | (content +   |                 |                                      |
-    |  structured) |                 |                                      |
+    Note over C,T: MCP Integration Flow
+    C->>MCP: call_tool request
+    MCP->>W: Build GraphInput payload
+    Note over W: Same 7-agent workflow<br/>as above
+    W-->>MCP: Complete response
+    MCP-->>C: CallToolResult with<br/>content + structured data
 ```
 
-The same 7-agent sequence applies when an MCP client calls into the adapter: the payload is constructed from the MCP request, routed through the LangGraph workflow with intelligent tool selection and parameter validation, and the response (with steps, warnings, and metadata) is returned to the caller before being rendered in the client environment.
+Both interfaces (Streamlit and MCP) use the identical 7-agent LangGraph workflow, ensuring consistent intelligent routing, tool execution, and comprehensive result formatting regardless of the entry point.
 
 ## Getting Started
 
