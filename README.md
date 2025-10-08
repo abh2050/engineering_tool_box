@@ -224,11 +224,11 @@ graph TD
     MCP --> ADAPT
     
     %% Styling
-    classDef interface fill:#e1f5fe
-    classDef workflow fill:#f3e5f5
-    classDef data fill:#e8f5e8
-    classDef tools fill:#fff3e0
-    classDef core fill:#fce4ec
+    classDef interface fill:#b3e5fc,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef workflow fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef data fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef tools fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef core fill:#f8bbd9,stroke:#c2185b,stroke-width:2px,color:#000
     
     class UI,MCP,CLIENT interface
     class WORKFLOW,PREPARE,ROUTER,PARAM,TOOL,EXPLAIN,SEARCH,HISTORY,FINAL workflow
