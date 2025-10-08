@@ -114,172 +114,89 @@ The modules integrate in this workflow sequence:
 
 ## Architecture
 
-### Component Architecture
+### System Architecture
 
 ```mermaid
-graph TD
-    %% User Interfaces
-    UI["`**Streamlit Chat UI**
-    app.py
-    (friendly interface)`"]
-    MCP["`**MCP Server**
-    mcp_server/server.py
-    (external integration)`"]
-    CLIENT["`**External Clients**
-    IDEs, AI agents
-    scripts/ping_mcp.py`"]
+graph TB
+    %% User Entry Points
+    USER[👤 User] --> UI[🖥️ Streamlit Chat UI]
+    AGENT[🤖 AI Agent] --> MCP[🔌 MCP Server]
     
-    %% LangGraph Workflow
-    subgraph WORKFLOW ["`**LangGraph 7-Agent Orchestration**
-    core/graph.py`"]
-        PREPARE["`**PrepareAgent**
-        normalize inputs`"]
-        ROUTER["`**RouterAgent**
-        OpenAI semantic routing
-        + keyword fallback`"]
-        PARAM["`**ParamValidationAgent**
-        collect missing
-        parameters`"]
-        TOOL["`**ToolAgent**
-        execute tool
-        w/ retry`"]
-        EXPLAIN["`**ExplainerAgent**
-        format steps
-        (LaTeX math)`"]
-        SEARCH["`**SearchAgent**
-        enrich with
-        glossary`"]
-        HISTORY["`**HistoryAgent**
-        persist run`"]
-        FINAL["`**FinalizerAgent**
-        build response`"]
-        
-        PREPARE --> ROUTER
-        ROUTER --> PARAM
-        PARAM --> TOOL
-        TOOL --> EXPLAIN
-        EXPLAIN --> SEARCH
-        SEARCH --> HISTORY
-        HISTORY --> FINAL
-    end
+    %% Core Processing
+    UI --> WORKFLOW[⚙️ LangGraph Workflow]
+    MCP --> WORKFLOW
     
-    %% Data Layer
-    subgraph DATA ["`**Data & Storage Layer**`"]
-        GLOSSARY["`**Glossary**
-        data/*.yaml`"]
-        SEARCHDB["`**Search Index**
-        (rapidfuzz)`"]
-        HISTORYDB["`**History DB**
-        (SQLite)`"]
-        REGISTRY["`**Tool Registry**
-        (JSON schemas)`"]
-    end
+    %% Workflow Steps (simplified)
+    WORKFLOW --> ROUTER{🧠 Smart Routing}
+    ROUTER --> TOOLS[🔧 Engineering Tools]
+    TOOLS --> RESULTS[📊 Results + Steps]
     
     %% Engineering Tools
-    subgraph TOOLS ["`**Engineering Tools**
-    tools/*.py`"]
-        PIPE["`**pipe_pressure_drop**
-        Darcy-Weisbach`"]
-        BEAM["`**beam_deflection**
-        Simply supported`"]
-        PUMP["`**pump_power_npsh**
-        Centrifugal pumps`"]
-        HX["`**hx_lmtd**
-        Heat exchangers`"]
-        BOLT["`**bolt_preload_torque**
-        Threaded fasteners`"]
+    subgraph CALC[" Engineering Calculations "]
+        PIPE[💧 Pipe Pressure Drop]
+        BEAM[🏗️ Beam Deflection] 
+        PUMP[⚡ Pump Power/NPSH]
+        HEAT[🌡️ Heat Exchanger]
+        BOLT[🔩 Bolt Torque]
     end
     
-    %% Core Modules
-    subgraph CORE ["`**Core Modules**`"]
-        STATE["`**core/state.py**
-        Data structures`"]
-        UNITS["`**core/units.py**
-        Pint registry`"]
-        ROUTING["`**core/routing.py**
-        Smart selection`"]
-        ADAPT["`**core/adapters.py**
-        MCP bridge`"]
-    end
+    %% Data Storage
+    RESULTS --> HISTORY[(💾 Calculation History)]
+    RESULTS --> SEARCH[🔍 Search & Glossary]
     
-    %% Connections
-    UI -->|GraphInput payload| WORKFLOW
-    MCP -->|shares same workflow| WORKFLOW
-    CLIENT <-->|stdio| MCP
+    %% Tool Details
+    TOOLS --> CALC
     
-    SEARCH --> GLOSSARY
-    SEARCH --> SEARCHDB
-    HISTORY --> HISTORYDB
-    ROUTER --> REGISTRY
+    %% Return Results
+    RESULTS --> UI
+    RESULTS --> MCP
     
-    TOOL --> PIPE
-    TOOL --> BEAM
-    TOOL --> PUMP
-    TOOL --> HX
-    TOOL --> BOLT
+    %% Simple Styling
+    classDef entry fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef tools fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef data fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     
-    TOOLS --> STATE
-    TOOLS --> UNITS
-    WORKFLOW --> ROUTING
-    MCP --> ADAPT
-    
-    %% Styling
-    classDef interface fill:#b3e5fc,stroke:#0277bd,stroke-width:2px,color:#000
-    classDef workflow fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
-    classDef data fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef tools fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#000
-    classDef core fill:#f8bbd9,stroke:#c2185b,stroke-width:2px,color:#000
-    
-    class UI,MCP,CLIENT interface
-    class WORKFLOW,PREPARE,ROUTER,PARAM,TOOL,EXPLAIN,SEARCH,HISTORY,FINAL workflow
-    class DATA,GLOSSARY,SEARCHDB,HISTORYDB,REGISTRY data
-    class TOOLS,PIPE,BEAM,PUMP,HX,BOLT tools
-    class CORE,STATE,UNITS,ROUTING,ADAPT core
+    class USER,AGENT entry
+    class UI,MCP,WORKFLOW,ROUTER,RESULTS process
+    class TOOLS,CALC,PIPE,BEAM,PUMP,HEAT,BOLT tools
+    class HISTORY,SEARCH data
 ```
 
-The architecture ensures consistent behavior across all entry points, with intelligent OpenAI semantic routing, comprehensive unit support, and full calculation traceability through the 7-agent LangGraph workflow.
+### How It Works (Simple Steps)
 
-### Workflow Sequence
+1. **👤 User asks a question** → *"What's the pressure drop in my pipe?"*
+2. **🧠 Smart routing** → *Automatically picks the right engineering tool*
+3. **🔧 Tool calculates** → *Runs pipe pressure drop equations with your parameters*
+4. **📊 Results returned** → *Shows answer + step-by-step math explanation*
+5. **💾 Saves history** → *Stores calculation for future reference*
+
+### Key Features
+- **🤖 AI-Powered**: Understands natural language questions
+- **🔧 5 Engineering Tools**: Covers common mechanical/process engineering calculations  
+- **📚 Step-by-Step**: Shows all math work with equations
+- **💾 Memory**: Saves all calculations with search
+- **🔌 Integrations**: Works with AI agents via MCP protocol
+
+### Simple Workflow
 
 ```mermaid
 sequenceDiagram
-    participant U as User/Client
-    participant UI as Streamlit UI
-    participant W as LangGraph Workflow
-    participant T as Tools & Storage
-    participant MCP as MCP Server
-    participant C as External Client
+    participant 👤 as User
+    participant 🖥️ as Streamlit UI
+    participant 🧠 as Smart Router
+    participant 🔧 as Engineering Tool
+    participant 💾 as Storage
 
-    Note over U,T: Streamlit Interface Flow
-    U->>UI: Submit calculation request
-    UI->>W: Build GraphInput payload
-    
-    Note over W: 7-Agent Orchestration
-    W->>W: PrepareAgent: normalize inputs
-    W->>W: RouterAgent: OpenAI semantic routing<br/>+ keyword fallback
-    W->>W: ParamValidationAgent: check required<br/>parameters, collect missing
-    W->>W: ToolAgent: execute with retry policy
-    W->>T: Tool.run() with parameters
-    T-->>W: results/steps/units/warnings
-    W->>W: ExplainerAgent: format to Markdown<br/>with LaTeX equations
-    W->>T: SearchAgent: query glossary/history
-    T-->>W: relevant search results
-    W->>T: HistoryAgent: persist calculation
-    T-->>W: history_id confirmation
-    W->>W: FinalizerAgent: build response
-    
-    W-->>UI: Complete response with results
-    UI-->>U: Render results in tabs
-
-    Note over C,T: MCP Integration Flow
-    C->>MCP: call_tool request
-    MCP->>W: Build GraphInput payload
-    Note over W: Same 7-agent workflow<br/>as above
-    W-->>MCP: Complete response
-    MCP-->>C: CallToolResult with<br/>content + structured data
+    👤->>🖥️: "Calculate beam deflection"
+    🖥️->>🧠: Analyze question
+    🧠->>🧠: Pick beam_deflection tool
+    🧠->>🔧: Run calculation
+    🔧->>🔧: Solve equations
+    🔧->>💾: Save results
+    🔧->>🖥️: Return results + steps
+    🖥️->>👤: Show answer with math
 ```
-
-Both interfaces (Streamlit and MCP) use the identical 7-agent LangGraph workflow, ensuring consistent intelligent routing, tool execution, and comprehensive result formatting regardless of the entry point.
 
 ## Getting Started
 
