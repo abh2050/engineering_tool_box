@@ -1,0 +1,63 @@
+- id: darcy_weisbach
+  name: "Darcy–Weisbach Equation"
+  equation: "\\Delta P = f \\frac{L}{D} \\frac{\\rho v^2}{2}"
+  description: |
+    Relates pressure loss due to friction along a given length of pipe to the average velocity of the fluid flow.
+  symbols:
+    - Delta P
+    - f
+    - L
+    - D
+    - rho
+    - v
+- id: beam_deflection_point_load
+  name: "Simply Supported Beam Center Load Deflection"
+  equation: "y_{max} = \\frac{P L^3}{48 E I}"
+  description: |
+    Maximum midspan deflection for a simply supported beam with a central point load.
+  symbols:
+    - y_max
+    - P
+    - L
+    - E
+    - I
+- id: beam_deflection_udl
+  name: "Simply Supported Beam UDL Deflection"
+  equation: "y_{max} = \\frac{5 w L^4}{384 E I}"
+  description: |
+    Maximum beam deflection for a simply supported beam carrying a uniform distributed load.
+  symbols:
+    - y_max
+    - w
+    - L
+    - E
+    - I
+- id: lmtd_counter_current
+  name: "Log Mean Temperature Difference (Counter-current)"
+  equation: "\\Delta T_{lm} = \\frac{\\Delta T_1 - \\Delta T_2}{\\ln(\\Delta T_1 / \\Delta T_2)}"
+  description: |
+    Effective temperature driving force for counter-current heat exchangers.
+  symbols:
+    - Delta T_1
+    - Delta T_2
+- id: pump_power
+  name: "Pump Hydraulic Power"
+  equation: "P = \\rho g Q H"
+  description: |
+    Hydraulic power developed by a pump given volumetric flow, head, and fluid density.
+  symbols:
+    - P
+    - rho
+    - g
+    - Q
+    - H
+- id: bolt_torque
+  name: "Bolt Torque Preload Relationship"
+  equation: "T = K F d"
+  description: |
+    Relates applied torque to bolt preload using the nut factor method.
+  symbols:
+    - T
+    - K
+    - F
+    - d

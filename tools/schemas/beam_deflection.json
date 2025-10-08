@@ -1,0 +1,110 @@
+{
+  "name": "beam_deflection",
+  "description": "Compute maximum deflection, slope, reactions, and internal diagrams for a simply supported beam under point or uniform load using Euler–Bernoulli theory.",
+  "keywords": ["beam", "deflection", "slope", "reaction", "moment", "shear", "load", "euler", "bernoulli", "bending", "structural"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "load_case": {
+        "type": "string",
+        "enum": ["point_load_center", "uniform_load"],
+        "description": "Loading configuration"
+      },
+      "length": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Beam span length"
+      },
+      "elastic_modulus": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["Pa", "psi"]}
+        },
+        "required": ["value", "units"],
+        "description": "Material Young's modulus"
+      },
+      "moment_of_inertia": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m^4", "in^4"]}
+        },
+        "required": ["value", "units"],
+        "description": "Second moment of area about neutral axis"
+      },
+      "point_load": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["N", "kN", "lbf"]}
+        },
+        "required": ["value", "units"],
+        "description": "Central point load (required for point_load_center case)"
+      },
+      "distributed_load": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["N/m", "kN/m", "lb/ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Uniformly distributed load (required for uniform_load case)"
+      },
+      "samples": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 201,
+        "default": 21,
+        "description": "Number of sample points used for shear/moment profiles"
+      }
+    },
+    "required": ["load_case", "length", "elastic_modulus", "moment_of_inertia"],
+    "allOf": [
+      {
+        "if": {"properties": {"load_case": {"const": "point_load_center"}}},
+        "then": {"required": ["point_load"]}
+      },
+      {
+        "if": {"properties": {"load_case": {"const": "uniform_load"}}},
+        "then": {"required": ["distributed_load"]}
+      }
+    ],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "max_deflection": {"type": "number", "description": "Maximum deflection (m)"},
+      "max_slope": {"type": "number", "description": "Maximum slope (rad)"},
+      "reaction_a": {"type": "number", "description": "Reaction at support A (N)"},
+      "reaction_b": {"type": "number", "description": "Reaction at support B (N)"},
+      "shear_support": {"type": "number", "description": "Shear at supports (N)"},
+      "moment_max": {"type": "number", "description": "Maximum bending moment (N·m)"},
+      "shear_profile": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [{"type": "number", "description": "position (m)"}, {"type": "number", "description": "shear (N)"}],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "moment_profile": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": [{"type": "number", "description": "position (m)"}, {"type": "number", "description": "moment (N·m)"}],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "required": ["max_deflection", "max_slope", "reaction_a", "reaction_b", "shear_support", "moment_max", "shear_profile", "moment_profile"],
+    "additionalProperties": false
+  }
+}

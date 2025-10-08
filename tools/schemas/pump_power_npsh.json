@@ -1,0 +1,114 @@
+{
+  "name": "pump_power_npsh",
+  "description": "Calculate hydraulic power, input power, and Net Positive Suction Head availability for a centrifugal pump under given operating conditions.",
+  "keywords": ["pump", "power", "npsh", "suction", "head", "centrifugal", "hydraulic", "cavitation", "flow", "efficiency"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "volumetric_flow_rate": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m^3/s", "gpm"]}
+        },
+        "required": ["value", "units"],
+        "description": "Pump volumetric flow rate"
+      },
+      "head": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Developed head"
+      },
+      "density": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kg/m^3", "lb/ft^3"]}
+        },
+        "required": ["value", "units"],
+        "description": "Fluid density"
+      },
+      "efficiency": {
+        "oneOf": [
+          {"type": "number"},
+          {
+            "type": "object",
+            "properties": {
+              "value": {"type": "number"},
+              "units": {"type": "string", "examples": ["%", "fraction"]}
+            },
+            "required": ["value"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "Pump efficiency as fraction or percent"
+      },
+      "suction_pressure": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["Pa", "psi"]}
+        },
+        "required": ["value", "units"],
+        "description": "Absolute suction pressure"
+      },
+      "vapor_pressure": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["Pa", "psi"]}
+        },
+        "required": ["value", "units"],
+        "description": "Fluid vapor pressure at temperature"
+      },
+      "suction_elevation": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Elevation of liquid surface relative to pump centerline"
+      },
+      "suction_losses": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Head losses in suction line"
+      },
+      "npsh_required": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Manufacturer-provided NPSHr (optional)"
+      }
+    },
+    "required": ["volumetric_flow_rate", "head", "density", "efficiency", "suction_pressure", "vapor_pressure", "suction_elevation", "suction_losses"],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "hydraulic_power": {"type": "number", "description": "Hydraulic power in watts"},
+      "input_power": {"type": "number", "description": "Input shaft power in watts"},
+      "npsha": {"type": "number", "description": "Available NPSH (m)"},
+      "npshr": {"type": ["number", "null"], "description": "Required NPSH (m) if provided"},
+      "npsh_margin": {"type": ["number", "null"], "description": "NPSH margin (m)"},
+      "adequate_npsh": {"type": ["boolean", "null"], "description": "True if NPSHa ≥ NPSHr"},
+      "suction_pressure_head": {"type": "number", "description": "Suction pressure expressed as head (m)"},
+      "vapor_pressure_head": {"type": "number", "description": "Vapor pressure expressed as head (m)"}
+    },
+    "required": ["hydraulic_power", "input_power", "npsha", "adequate_npsh", "suction_pressure_head", "vapor_pressure_head"],
+    "additionalProperties": false
+  }
+}

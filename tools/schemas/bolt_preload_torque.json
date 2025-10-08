@@ -1,0 +1,89 @@
+{
+  "name": "bolt_preload_torque",
+  "description": "Calculate required tightening torque for a bolted joint, break down torque contributions, and evaluate clamp safety factors.",
+  "keywords": ["bolt", "torque", "preload", "fastener", "tightening", "clamp", "joint", "thread", "nut", "screw"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "preload": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["N", "kN", "lbf"]}
+        },
+        "required": ["value", "units"],
+        "description": "Desired preload force F_i"
+      },
+      "nominal_diameter": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "mm", "in"]}
+        },
+        "required": ["value", "units"],
+        "description": "Nominal thread diameter"
+      },
+      "thread_pitch": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["mm", "in"]}
+        },
+        "required": ["value", "units"],
+        "description": "Thread pitch (lead per revolution)"
+      },
+      "nut_factor": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Empirical K-factor for torque = K F d"
+      },
+      "friction_thread": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Thread friction coefficient"
+      },
+      "friction_bearing": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Bearing surface friction coefficient"
+      },
+      "external_load": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["N", "kN"]}
+        },
+        "required": ["value", "units"],
+        "description": "External separating load on joint (optional)"
+      },
+      "proof_load": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["N", "kN"]}
+        },
+        "required": ["value", "units"],
+        "description": "Bolt proof load for safety check (optional)"
+      }
+    },
+    "required": ["preload", "nominal_diameter", "thread_pitch", "nut_factor", "friction_thread", "friction_bearing"],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "recommended_torque": {"type": "number", "description": "Torque from K-factor (N·m)"},
+      "thread_torque": {"type": "number", "description": "Thread friction torque (N·m)"},
+      "bearing_torque": {"type": "number", "description": "Bearing friction torque (N·m)"},
+      "torque_from_breakdown": {"type": "number", "description": "Sum of thread and bearing torques (N·m)"},
+      "preload_stress_area": {"type": "number", "description": "Tensile stress area (m^2)"},
+      "preload_stress": {"type": "number", "description": "Preload stress (Pa)"},
+      "clamp_safety_factor": {"type": ["number", "null"], "description": "Clamp load safety factor vs external load"},
+      "clamp_residual": {"type": ["number", "null"], "description": "Residual clamp load (N)"},
+      "proof_safety_factor": {"type": ["number", "null"], "description": "Safety factor relative to proof load"},
+      "effective_nut_factor": {"type": "number", "description": "Equivalent K derived from detailed friction"}
+    },
+    "required": ["recommended_torque", "thread_torque", "bearing_torque", "torque_from_breakdown", "preload_stress_area", "preload_stress", "effective_nut_factor"],
+    "additionalProperties": false
+  }
+}

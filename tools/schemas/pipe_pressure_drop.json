@@ -1,0 +1,99 @@
+{
+  "name": "pipe_pressure_drop",
+  "description": "Calculate Darcy–Weisbach pressure losses, Reynolds number, velocity, and head loss for pipe flow using Colebrook–White friction factor.",
+  "keywords": ["pipe", "pressure", "drop", "flow", "darcy", "weisbach", "friction", "reynolds", "velocity", "head", "loss", "colebrook", "white"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "volumetric_flow_rate": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {
+            "type": "string",
+            "description": "Compatible volumetric flow units",
+            "examples": ["m^3/s", "L/min", "gpm"]
+          }
+        },
+        "required": ["value", "units"],
+        "description": "Volumetric flow rate through the pipe"
+      },
+      "velocity": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {
+            "type": "string",
+            "examples": ["m/s", "ft/s"]
+          }
+        },
+        "required": ["value", "units"],
+        "description": "Average flow velocity (alternative to volumetric flow rate)"
+      },
+      "diameter": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "in"]}
+        },
+        "required": ["value", "units"],
+        "description": "Pipe internal diameter"
+      },
+      "length": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["m", "ft"]}
+        },
+        "required": ["value", "units"],
+        "description": "Pipe length"
+      },
+      "roughness": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["mm", "mils"]}
+        },
+        "required": ["value", "units"],
+        "description": "Absolute roughness of pipe interior"
+      },
+      "density": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kg/m^3", "lb/ft^3"]}
+        },
+        "required": ["value", "units"],
+        "description": "Fluid density"
+      },
+      "dynamic_viscosity": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["Pa·s", "cP"]}
+        },
+        "required": ["value", "units"],
+        "description": "Fluid dynamic viscosity"
+      }
+    },
+    "required": ["diameter", "length", "roughness", "density", "dynamic_viscosity"],
+    "anyOf": [
+      {"required": ["volumetric_flow_rate"]},
+      {"required": ["velocity"]}
+    ],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "delta_p": {"type": "number", "description": "Pressure drop (Pa)"},
+      "friction_factor": {"type": "number", "description": "Darcy friction factor"},
+      "reynolds_number": {"type": "number"},
+      "velocity": {"type": "number", "description": "Mean flow velocity (m/s)"},
+      "volumetric_flow_rate": {"type": "number", "description": "Volumetric flow rate (m^3/s)"},
+      "head_loss": {"type": "number", "description": "Head loss (m)"}
+    },
+    "required": ["delta_p", "friction_factor", "reynolds_number", "velocity", "volumetric_flow_rate", "head_loss"],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,16 @@
+streamlit>=1.37
+langgraph>=0.1.5
+openai>=1.40
+pydantic>=2.7
+pint>=0.22
+numpy>=1.26
+scipy>=1.12
+sqlmodel>=0.0.16
+loguru>=0.7
+markdown-it-py>=3.0
+python-dotenv>=1.0
+rapidfuzz>=3.5
+whoosh>=2.7
+mcp>=0.1.0
+pytest>=7.4
+fpdf2>=2.7

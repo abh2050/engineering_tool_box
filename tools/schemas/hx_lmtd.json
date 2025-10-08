@@ -1,0 +1,121 @@
+{
+  "name": "hx_lmtd",
+  "description": "Size a counter-current heat exchanger using the LMTD method, solving for outlet temperatures as needed and computing required area.",
+  "keywords": ["heat", "exchanger", "lmtd", "temperature", "thermal", "sizing", "area", "counter", "current", "duty"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "mass_flow_hot": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kg/s", "lb/s"]}
+        },
+        "required": ["value", "units"],
+        "description": "Hot stream mass flow rate"
+      },
+      "mass_flow_cold": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kg/s", "lb/s"]}
+        },
+        "required": ["value", "units"],
+        "description": "Cold stream mass flow rate"
+      },
+      "cp_hot": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kJ/kg/K", "Btu/lb°F"]}
+        },
+        "required": ["value", "units"],
+        "description": "Hot stream specific heat"
+      },
+      "cp_cold": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["kJ/kg/K", "Btu/lb°F"]}
+        },
+        "required": ["value", "units"],
+        "description": "Cold stream specific heat"
+      },
+      "t_hot_in": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["°C", "°F", "K"]}
+        },
+        "required": ["value", "units"],
+        "description": "Hot inlet temperature"
+      },
+      "t_hot_out": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["°C", "°F", "K"]}
+        },
+        "required": ["value", "units"],
+        "description": "Hot outlet temperature (optional)"
+      },
+      "t_cold_in": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["°C", "°F", "K"]}
+        },
+        "required": ["value", "units"],
+        "description": "Cold inlet temperature"
+      },
+      "t_cold_out": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["°C", "°F", "K"]}
+        },
+        "required": ["value", "units"],
+        "description": "Cold outlet temperature (optional)"
+      },
+      "overall_heat_transfer_coefficient": {
+        "type": "object",
+        "properties": {
+          "value": {"type": "number"},
+          "units": {"type": "string", "examples": ["W/m^2/K", "Btu/hr/ft^2°F"]}
+        },
+        "required": ["value", "units"],
+        "description": "Overall heat transfer coefficient U"
+      },
+      "correction_factor": {
+        "type": "number",
+        "default": 1.0,
+        "minimum": 0,
+        "maximum": 1.2,
+        "description": "LMTD correction factor F"
+      }
+    },
+    "required": ["mass_flow_hot", "mass_flow_cold", "cp_hot", "cp_cold", "t_hot_in", "t_cold_in", "overall_heat_transfer_coefficient"],
+    "anyOf": [
+      {"required": ["t_hot_out"]},
+      {"required": ["t_cold_out"]}
+    ],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "duty": {"type": "number", "description": "Heat duty (W)"},
+      "lmtd": {"type": "number", "description": "Log mean temperature difference (K)"},
+      "area": {"type": "number", "description": "Required heat transfer area (m^2)"},
+      "hot_outlet_temp": {"type": "number", "description": "Hot outlet temperature (°C)"},
+      "cold_outlet_temp": {"type": "number", "description": "Cold outlet temperature (°C)"},
+      "delta_t1": {"type": "number", "description": "Terminal temperature difference #1 (K)"},
+      "delta_t2": {"type": "number", "description": "Terminal temperature difference #2 (K)"},
+      "heat_capacity_rate_hot": {"type": "number", "description": "Hot stream heat capacity rate (W/K)"},
+      "heat_capacity_rate_cold": {"type": "number", "description": "Cold stream heat capacity rate (W/K)"},
+      "heat_capacity_ratio": {"type": "number", "description": "C_min / C_max"}
+    },
+    "required": ["duty", "lmtd", "area", "hot_outlet_temp", "cold_outlet_temp", "delta_t1", "delta_t2", "heat_capacity_rate_hot", "heat_capacity_rate_cold", "heat_capacity_ratio"],
+    "additionalProperties": false
+  }
+}
