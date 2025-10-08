@@ -150,17 +150,6 @@ graph TB
     %% Return Results
     RESULTS --> UI
     RESULTS --> MCP
-    
-    %% Simple Styling
-    classDef entry fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef process fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef tools fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef data fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    
-    class USER,AGENT entry
-    class UI,MCP,WORKFLOW,ROUTER,RESULTS process
-    class TOOLS,CALC,PIPE,BEAM,PUMP,HEAT,BOLT tools
-    class HISTORY,SEARCH data
 ```
 
 ### How It Works (Simple Steps)
